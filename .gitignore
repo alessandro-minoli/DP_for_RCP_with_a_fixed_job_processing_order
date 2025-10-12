@@ -42,6 +42,7 @@
 
 
 .vscode/
+.venv/
 build/
 bin/
 other/
