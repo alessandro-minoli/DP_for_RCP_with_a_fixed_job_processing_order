@@ -1,6 +1,6 @@
-#### A dynamic programming algorithm for the Robotic Cell Problem with fixed job processing order
+#### A dynamic programming algorithm for the Robotic Cell Problem with a fixed job processing order
 
-Alessandro Minoli, Giovanni Righini (2025)
+Alessandro Minoli, Giovanni Righini (2026)
 
 ##### Usage
 
