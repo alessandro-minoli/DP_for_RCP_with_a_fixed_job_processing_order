@@ -2,22 +2,25 @@ from itertools import product
 import gurobipy as gp
 from gurobipy import GRB
 import numpy as np
+import csv
+import re
 
+INPUT_CSV = "computational_results_dataset_D1.csv"
+
+FILENAME_RE = re.compile(r"dataset_D1/m_(\d+)_n_(\d+)_seed_(\d+)\.txt$")
 
 def solve(filename):
 
-    # read DP optimal value
-    with open(f"dataset_D1_out/{filename}") as f:
-        lines = f.readlines()
-        DP_objective = int(lines[3].split()[1])
-        DP_time = float(lines[4].split()[1])
+    with open(INPUT_CSV, newline="") as f:
+        for row in csv.DictReader(f):
+            if row["instance_path"] == filename:
+                exact_sol = int(row["exact_sol"])
+                exact_time = float(row["exact_time"])
+                u2_sol = int(row["u2_sol"])
+            
+    assert u2_sol >= exact_sol
 
-    with open(f"dataset_D1_out_UB2/{filename}") as f:
-        UB2 = int(f.readlines()[2])
-
-    assert UB2 >= DP_objective
-
-    with open(f"dataset_D1/{filename}") as f:
+    with open(filename) as f:
 
         m = int(f.readline()) 
         n = int(f.readline())
@@ -42,21 +45,21 @@ def solve(filename):
     J = list(range(1,n+1))
     M = list(range(m+2))
     O = list(product(J,[h for h in M if h < m+1]))
-    B = UB2
+    B = u2_sol
 
-    with gp.Env() as env:
+    with gp.Env(empty=True) as env:
+        env.setParam("OutputFlag", 0)
+        env.start()
         with gp.Model("RCP", env=env) as model:
 
-            model.setParam("OutputFlag", 0)
             model.setParam('TimeLimit', 5*60)
 
-            x,y,t = dict(), dict(), dict()
+            x,t = dict(), dict()
             for (i,h) in O:
                 t[(i,h)] = model.addVar(vtype=GRB.CONTINUOUS, lb=0)
                 for (j,k) in O:
                     if i != j or h != k:
                         x[(i,h),(j,k)] = model.addVar(vtype=GRB.BINARY)
-                        # y[(i,h),(j,k)] = model.addVar(vtype=GRB.CONTINUOUS, lb=0)
 
             model.setObjective(t[(n,m)]+τ[m][m+1], GRB.MINIMIZE)
 
@@ -98,21 +101,23 @@ def solve(filename):
 
             model.optimize()
 
+            match = FILENAME_RE.match(filename)
+            if not match:
+                raise ValueError(f"Unexpected filename format: {filename}")
+            m, n, seed = (int(g) for g in match.groups())
+
             if model.Status == GRB.TIME_LIMIT:
-                print(f"{filename} TIME_LIMIT")
+                print(f"{filename},{m},{n},{seed},TIME_LIMIT,")
             elif model.Status == GRB.OPTIMAL:
-                print(f"{filename},{model.Runtime:.6f},{DP_time:.6f}")
-                assert abs(model.ObjVal - DP_objective) < 0.001
+                print(f"{filename},{m},{n},{seed},{model.Runtime:.6f},{exact_time:.6f}")
+                assert abs(model.ObjVal - exact_sol) < 0.001
             else:
-                print(f"{filename} Status {model.Status}")
-                assert False
+                raise RuntimeError("unreachable")
                         
 
-count = 0
+print("instance_path,m,n,seed,milp_time,exact_time")
 for m in [4,5,6,7]:
     for n in [4,6,8,10]:
         for seed in range(10):
-            filename = f"m_{m:02d}_n_{n:02d}_seed_{seed:02d}.txt"
+            filename = f"dataset_D1/m_{m:02d}_n_{n:02d}_seed_{seed:02d}.txt"
             solve(filename)
-            count += 1
-print(count)

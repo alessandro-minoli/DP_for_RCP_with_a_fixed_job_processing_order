@@ -47,7 +47,7 @@ other/
 ignore/
 MILP_formulation_out.txt
 analysis_*.ipynb
-run_*.sh
+run_on_*.sh
 *_runtime.pdf
 
 ### to keep for now
