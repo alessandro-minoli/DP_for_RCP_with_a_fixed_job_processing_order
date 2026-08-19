@@ -44,7 +44,7 @@ Instance::Instance(const std::string &filename)
 
     max_number_of_extensions = M / 2 + 1;
 
-    // initializing U
+    // initializing U, that is the bound given the "one job at a time" heuristic
 
     int tot_processing_time = 0;
     for (int i = 1; i != M + 1; ++i)
@@ -119,8 +119,8 @@ Instance::Instance(const std::string &filename)
 
 std::ostream &operator<<(std::ostream &os, const Instance &ins)
 {
-    os << "J = " << ins.J << std::endl;
-    os << "M = " << ins.M << std::endl;
+    os << "m = " << ins.M << std::endl;
+    os << "n = " << ins.J << std::endl;
     os << "p =" << std::endl;
     for (int i = 0; i != ins.M + 2; ++i)
     {
@@ -142,46 +142,52 @@ std::ostream &operator<<(std::ostream &os, const Instance &ins)
         }
         os << std::endl;
     }
-    os << "U = " << ins.U << std::endl;
 
+    // os << "U = " << ins.U << std::endl;
     // os << "max_number_of_extensions = " << ins.max_number_of_extensions << std::endl;
 
-    // os << "lambda_factors =" << std::endl;
-    // for (int j = 0; j != ins.J + 1; ++j)
-    // {
-    //     os << "  j=" << j << std::endl;
-    //     for (int m = 0; m != ins.M + 2; ++m)
-    //     {
-    //         os << "\t";
-    //         for (int k = 0; k != ins.M + 2; ++k)
-    //         {
-    //             os << ins.lambda_factors[j][m][k] << " ";
-    //         }
-    //         os << std::endl;
-    //     }
-    // }
+    /*
+    os << "lambda_factors =" << std::endl;
+    for (int j = 0; j != ins.J + 1; ++j)
+    {
+        os << "  j=" << j << std::endl;
+        for (int m = 0; m != ins.M + 2; ++m)
+        {
+            os << "\t";
+            for (int k = 0; k != ins.M + 2; ++k)
+            {
+                os << ins.lambda_factors[j][m][k] << " ";
+            }
+            os << std::endl;
+        }
+    }
+    */
     
-    // os << "mu_factors_1 =\t";
-    // for (auto const &el : ins.mu_factors_1)
-    // {
-    //     os << el << " ";
-    // }
-    // os << std::endl;
-    
-    // os << "mu_factors_2 =" << std::endl;
-    // for (int m = 0; m != ins.M + 1; ++m)
-    // {
-    //     os << "  m=" << m << std::endl;
-    //     for (int j = 0; j != ins.J + 1; ++j)
-    //     {
-    //         os << "\t";
-    //         for (int i = 0; i != ins.J + 1; ++i)
-    //         {
-    //             os << ins.mu_factors_2[m][j][i] << " ";
-    //         }
-    //         os << std::endl;
-    //     }
-    // }
+    /*
+    os << "mu_factors_1 =\t";
+    for (auto const &el : ins.mu_factors_1)
+    {
+        os << el << " ";
+    }
+    os << std::endl;
+    */
+
+    /*
+    os << "mu_factors_2 =" << std::endl;
+    for (int m = 0; m != ins.M + 1; ++m)
+    {
+        os << "  m=" << m << std::endl;
+        for (int j = 0; j != ins.J + 1; ++j)
+        {
+            os << "\t";
+            for (int i = 0; i != ins.J + 1; ++i)
+            {
+                os << ins.mu_factors_2[m][j][i] << " ";
+            }
+            os << std::endl;
+        }
+    }
+    */
 
     return os;
 }
