@@ -41,9 +41,25 @@
 *.dwo
 
 
+
+### certainly to be removed in future
+other/
+ignore/
+MILP_formulation_out.txt
+analysis_*.ipynb
+run_*.sh
+*_runtime.pdf
+
+### to keep for now
+dataset_D1_out/
+dataset_D1_out_UB1/
+dataset_D1_out_UB2/
+dataset_D2_out/
+create_csv_D1.py
+create_csv_D2.py
+
 .vscode/
 .venv/
 build/
 bin/
-other/
 compile.sh
