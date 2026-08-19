@@ -3,41 +3,22 @@ import statistics
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 
-INPUT_CSV = "../computational_results_dataset_D2.csv"
+INPUT_CSV = "../computational_results_dataset_D1.csv"
 OUTPUT_FIGURE = "figure2.pdf"
 
-N_VALUES = [10, 20, 30]
-TRAVEL_VALUES = (10, 25, 50)
-COLORS = {10: "tab:blue", 25: "tab:orange", 50: "tab:green"}
-
-# Instance classes shown, in display order: tr_10_pr_{10..60}, tr_25_pr_{25..150}, tr_50_pr_{50..300}
-ORDER = [
-    (t, p)
-    for t in TRAVEL_VALUES
-    for p in range(t, 6 * t + 1, t)
-]
+M_VALUES = list(range(5, 16, 2))
+N_VALUES = list(range(4, 31, 2))
 
 
 def main():
     exact_times = defaultdict(list)
     with open(INPUT_CSV, newline="") as f:
         for row in csv.DictReader(f):
-            if int(row["m"]) != 12:
-                continue
-            key = (int(row["n"]), int(row["tr"]), int(row["pr"]))
+            key = (int(row["m"]), int(row["n"]))
             exact_times[key].append(float(row["exact_time"]))
-
-    stats = {}
-    for key, times in exact_times.items():
-        q1, _, q3 = statistics.quantiles(times, n=4, method="inclusive")
-        stats[key] = {"median": statistics.median(times), "q1": q1, "q3": q3}
-
-    # Shared y range across all instance classes present at n in N_VALUES
-    q1_values = [s["q1"] for key, s in stats.items() if key[0] in N_VALUES]
-    q3_values = [s["q3"] for key, s in stats.items() if key[0] in N_VALUES]
-    y_min = min(q1_values) * 0.8
-    y_max = max(q3_values) * 1.2
 
     plt.rcParams.update({
         "font.size": 13,
@@ -47,34 +28,71 @@ def main():
         "axes.linewidth": 1.0,
     })
 
-    fig, axes = plt.subplots(1, 3, figsize=(11, 4), sharey=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
 
-    cap_w = 0.15
-    for i, (ax, n) in enumerate(zip(axes, N_VALUES)):
-        classes = [(t, p) for (t, p) in ORDER if (n, t, p) in stats]
-        xs = list(range(len(classes)))
-        labels = [f"tr_{t}_pr_{p}" for (t, p) in classes]
+    for m in M_VALUES:
+        q0_values, q25_values, median_values, q75_values, q100_values = [], [], [], [], []
 
-        for x, (t, p) in zip(xs, classes):
-            s = stats[(n, t, p)]
-            color = COLORS[t]
-            ax.bar(x, s["median"], color=color, alpha=0.4, width=0.6)
-            ax.vlines(x=x, ymin=s["q1"], ymax=s["q3"], color=color, linewidth=1, zorder=3)
-            ax.hlines(y=s["q1"], xmin=x - cap_w, xmax=x + cap_w, color=color, linewidth=1, zorder=3)
-            ax.hlines(y=s["q3"], xmin=x - cap_w, xmax=x + cap_w, color=color, linewidth=1, zorder=3)
-            ax.scatter(x, s["median"], color=color, s=10, zorder=4)
+        for n in N_VALUES:
+            times = exact_times.get((m, n))
+            if times:
+                q25, _, q75 = statistics.quantiles(times, n=4, method="inclusive")
+                q0_values.append(min(times))
+                q25_values.append(q25)
+                median_values.append(statistics.median(times))
+                q75_values.append(q75)
+                q100_values.append(max(times))
+            else:
+                q0_values.append(None)
+                q25_values.append(None)
+                median_values.append(None)
+                q75_values.append(None)
+                q100_values.append(None)
 
-        ax.set_xticks(xs)
-        ax.set_xticklabels(labels, rotation=90, ha="center", va="bottom", fontsize=10)
-        ax.set_xlabel("Instance class", fontsize=12)
-        ax.tick_params(axis="x", pad=70)
+        # Outer band (0-100%)
+        ax.fill_between(
+            N_VALUES, q0_values, q100_values,
+            color="C0", alpha=0.20, linewidth=0,
+        )
 
-        ax.set_ylim(y_min, y_max)
-        ax.set_yscale("log")
-        if i == 0:
-            ax.set_ylabel("Runtime [s]", fontsize=12)
-        ax.set_title(f"$n$ = {n}", fontsize=12)
-        ax.grid(True, axis="y", linestyle="--", alpha=0.4)
+        # IQR band (25-75%)
+        ax.fill_between(
+            N_VALUES, q25_values, q75_values,
+            color="C0", alpha=0.45, linewidth=0,
+        )
+
+        # Median line
+        ax.plot(N_VALUES, median_values, color="black", linewidth=1.5)
+
+        # Direct label for m
+        valid_idx = [i for i, v in enumerate(median_values) if v is not None]
+        if valid_idx:
+            last = valid_idx[-1]
+            ax.text(
+                N_VALUES[last] + 0.3,
+                median_values[last],
+                f"$m={m}$",
+                verticalalignment="center",
+                fontsize=12,
+                color="black",
+            )
+
+    legend_elements = [
+        Line2D([0], [0], color="black", lw=1.5, label="Median"),
+        Patch(facecolor="C0", alpha=0.45, label="25th–75th percentile"),
+        Patch(facecolor="C0", alpha=0.20, label="0th–100th percentile"),
+    ]
+
+    ax.legend(handles=legend_elements, loc="upper left", frameon=False)
+
+    ax.set_yscale("log")
+    ax.set_xlabel("$n$")
+    ax.set_ylabel("Runtime [s]")
+    ax.set_xticks(N_VALUES)
+
+    ax.grid(True, which="major", linestyle="--", linewidth=0.6, alpha=0.4)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
 
     plt.tight_layout()
     plt.savefig(OUTPUT_FIGURE, format="pdf")

@@ -5,5 +5,5 @@ python3 create_table4.py
 python3 create_table5.py
 python3 create_table6.py
 python3 create_table7.py
-python3 create_figure1.py
 python3 create_figure2.py
+python3 create_figure3.py
