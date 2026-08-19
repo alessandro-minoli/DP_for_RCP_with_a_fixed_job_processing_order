@@ -1,6 +1,17 @@
 ## A dynamic programming algorithm for the Robotic Cell Problem with a fixed job processing order
 
-Alessandro Minoli, Giovanni Righini (2026)
+#### Alessandro Minoli, Giovanni Righini (2026)
+
+### Abstract
+
+The Robotic Cell Problem (RCP) is a flow-shop scheduling problem in which jobs must be transferred from each machine to the next one by a robot.
+The robot movements require non-negligible time and must be optimized to minimize the makespan.
+The problem is practically relevant in the context of manufacturing systems.
+In this work, we study a variant of the RCP in which the processing order of the jobs is fixed.
+We present a dynamic programming algorithm for the exact optimization of this variant and show how it can be transformed into an accurate heuristic.
+Computational results are provided on instances with up to 30 jobs and 15 machines under different distributions of travel and processing times.
+The results indicate that our algorithm can solve significantly larger instances than existing methods.
+The proposed approach may also serve as a subroutine within future heuristic methods for the general RCP.
 
 ### Usage
 
